@@ -27,6 +27,7 @@ Description:
 
 #include <cstdio>
 #include <cassert>
+#include <iostream>
 
 #if defined(WIN32)
 # include <conio.h>
@@ -37,6 +38,7 @@ Description:
 #include <HD/hd.h>
 #include <HDU/hduVector.h>
 #include <HDU/hduError.h>
+#include "QueryDevice.h"
 
 /*******************************************************************************
  Haptic plane callback.  The plane is oriented along Y=0 and provides a 
@@ -50,7 +52,7 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 
     // Amount of force the user needs to apply in order to pop through
     // the plane.
-    const double popthroughForceThreshold = 5.0;
+    const double popthroughForceThreshold = 10.0;
     
     // Plane direction changes whenever the user applies sufficient
     // force to popthrough it.
@@ -58,7 +60,7 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
     // -1 means the plane is facing -Y.
     static int directionFlag = 1;
 
-    hdBeginFrame(hdGetCurrentDevice());
+    //hdBeginFrame(hdGetCurrentDevice());
 
     // Get the position of the device.
     hduVector3Dd position;
@@ -69,18 +71,12 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
     // Penetration occurs if the plane is facing in +Y and the user's Y position
     // is negative, or vice versa.
 
-    if ((position[1] <= 0 && directionFlag > 0) || 
-        (position[1] > 0) && (directionFlag < 0))
-    {
-        // Create a force vector repelling the user from the plane proportional
-        // to the penetration distance, using F=kx where k is the plane 
-        // stiffness and x is the penetration vector.  Since the plane is 
-        // oriented at the Y=0, the force direction is always either directly 
-        // upward or downward, i.e. either (0,1,0) or (0,-1,0).
-        double penetrationDistance = fabs(position[1]);
-        hduVector3Dd forceDirection(0,directionFlag,0);
+	if (position[0] <= -75 || position[0] >= 75) {
+		directionFlag = (position[0] > 0) ? -1 : 1;
+        double penetrationDistance = fabs(position[0]) - 75;
+        hduVector3Dd forceDirection(directionFlag, 0, 0);
 
-        // Hooke's law explicitly:
+		// Hooke's law explicitly:
         double k = planeStiffness;
         hduVector3Dd x = penetrationDistance*forceDirection;
         hduVector3Dd f = k*x;
@@ -95,7 +91,35 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
         }
 
         hdSetDoublev(HD_CURRENT_FORCE, f);
-    }
+	}
+
+    //if ((position[1] <= 0 && directionFlag > 0) || 
+    //    (position[1] > 0) && (directionFlag < 0))
+    //{
+    //    // Create a force vector repelling the user from the plane proportional
+    //    // to the penetration distance, using F=kx where k is the plane 
+    //    // stiffness and x is the penetration vector.  Since the plane is 
+    //    // oriented at the Y=0, the force direction is always either directly 
+    //    // upward or downward, i.e. either (0,1,0) or (0,-1,0).
+    //    double penetrationDistance = fabs(position[1]);
+    //    hduVector3Dd forceDirection(0,directionFlag,0);
+
+    //    // Hooke's law explicitly:
+    //    double k = planeStiffness;
+    //    hduVector3Dd x = penetrationDistance*forceDirection;
+    //    hduVector3Dd f = k*x;
+
+    //    // If the user applies sufficient force, pop through the plane
+    //    // by reversing its direction.  Otherwise, apply the repel
+    //    // force.
+    //    if (f.magnitude() > popthroughForceThreshold)
+    //    {
+    //        f.set(0.0,0.0,0.0);
+    //        directionFlag = -directionFlag;
+    //    }
+
+    //    hdSetDoublev(HD_CURRENT_FORCE, f);
+    //}
 
     hdEndFrame(hdGetCurrentDevice());
 
@@ -144,6 +168,12 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+	// QueryDevice setup
+    HDSchedulerHandle hUpdateHandle = 0;
+    /* Schedule the main scheduler callback that updates the device state. */
+    hUpdateHandle = hdScheduleAsynchronous(
+        updateDeviceCallback, 0, HD_MAX_SCHEDULER_PRIORITY);
+
     // Schedule the frictionless plane callback, which will then run at 
     // servoloop rates and command forces if the user penetrates the plane.
     HDCallbackCode hPlaneCallback = hdScheduleAsynchronous(
@@ -156,6 +186,9 @@ int main(int argc, char* argv[])
 
     while (!_kbhit())
     {       
+		// Query the device
+		mainLoop();
+		// Run wall checking
         if (!hdWaitForCompletion(hPlaneCallback, HD_WAIT_CHECK_STATUS))
         {
             fprintf(stderr, "\nThe main scheduler callback has exited\n");
