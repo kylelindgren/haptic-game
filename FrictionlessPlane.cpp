@@ -70,16 +70,19 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
     // repel the user in the direction of the surface normal of the plane.
     // Penetration occurs if the plane is facing in +Y and the user's Y position
     // is negative, or vice versa.
+	double penetrationDistance = 0;
+    double k = planeStiffness;
+	hduVector3Dd f = hduVector3Dd(0, 0, 0);
 
+	// update x force
 	if (position[0] <= -75 || position[0] >= 75) {
 		directionFlag = (position[0] > 0) ? -1 : 1;
-        double penetrationDistance = fabs(position[0]) - 75;
+        penetrationDistance = fabs(position[0]) - 75;
         hduVector3Dd forceDirection(directionFlag, 0, 0);
 
 		// Hooke's law explicitly:
-        double k = planeStiffness;
         hduVector3Dd x = penetrationDistance*forceDirection;
-        hduVector3Dd f = k*x;
+        f = k*x;
 
         // If the user applies sufficient force, pop through the plane
         // by reversing its direction.  Otherwise, apply the repel
@@ -89,9 +92,48 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
             f.set(0.0,0.0,0.0);
             directionFlag = -directionFlag;
         }
-
-        hdSetDoublev(HD_CURRENT_FORCE, f);
 	}
+	// update y force
+	if (position[1] <= -20 || position[1] >= 20) {
+		directionFlag = (position[1] > 0) ? -1 : 1;
+        penetrationDistance = fabs(position[1]) - 20;
+        hduVector3Dd forceDirection(0, directionFlag, 0);
+
+		// Hooke's law explicitly:
+        hduVector3Dd x = penetrationDistance*forceDirection;
+        f += k*x;
+
+        // If the user applies sufficient force, pop through the plane
+        // by reversing its direction.  Otherwise, apply the repel
+        // force.
+        if (f.magnitude() > popthroughForceThreshold)
+        {
+            f.set(0.0,0.0,0.0);
+            directionFlag = -directionFlag;
+        }
+	}
+	// update z force
+	if (position[2] <= -50 || position[2] >= 50) {
+		directionFlag = (position[2] > 0) ? -1 : 1;
+        penetrationDistance = fabs(position[2]) - 50;
+        hduVector3Dd forceDirection(0, 0, directionFlag);
+
+		// Hooke's law explicitly:
+        hduVector3Dd x = penetrationDistance*forceDirection;
+        f += k*x;
+
+        // If the user applies sufficient force, pop through the plane
+        // by reversing its direction.  Otherwise, apply the repel
+        // force.
+        if (f.magnitude() > popthroughForceThreshold)
+        {
+            f.set(0.0,0.0,0.0);
+            directionFlag = -directionFlag;
+        }
+	}
+		
+    hdSetDoublev(HD_CURRENT_FORCE, f);
+
 
     //if ((position[1] <= 0 && directionFlag > 0) || 
     //    (position[1] > 0) && (directionFlag < 0))
