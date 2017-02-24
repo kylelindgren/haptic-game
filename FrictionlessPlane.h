@@ -10,46 +10,38 @@ For questions, comments or bug reports, go to forums at:
     http://dsc.sensable.com
 
 Module Name:
-  
-  QueryDevice.c
 
-Description:
+  FrictionlessPlane.cpp
 
-  This example demonstrates how to retrieve information from the haptic device.
+Description: 
+
+  This example demonstrates how to haptically render contact with an infinite
+  frictionless plane.  The plane allows popthrough such that if the user 
+  applies enough force against the plane, the plane will reverse its sidedness
+  and allow the user to interact with it from the opposite side.
 
 *******************************************************************************/
 #ifdef  _WIN64
 #pragma warning (disable:4996)
 #endif
 
+#include <cstdio>
+#include <cassert>
+#include <iostream>
+
 #if defined(WIN32)
-# include <windows.h>
 # include <conio.h>
 #else
 # include "conio.h"
-# include <string.h>
 #endif
 
-#include <stdio.h>
-#include <assert.h>
-
 #include <HD/hd.h>
-
 #include <HDU/hduVector.h>
 #include <HDU/hduError.h>
 
-namespace querydevice {
+namespace frictionlessplane {
 
-/* Holds data retrieved from HDAPI. */
-typedef struct 
-{
-    HDboolean m_buttonState;       /* Has the device button has been pressed. */
-    hduVector3Dd m_devicePosition; /* Current device coordinates. */
-    HDErrorInfo m_error;
-} DeviceData;
+HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data);
 
-HDCallbackCode HDCALLBACK updateDeviceCallback(void *pUserData);
-HDCallbackCode HDCALLBACK copyDeviceDataCallback(void *pUserData);
-void mainLoop(void);
+}  // namespace frictionlessplane
 
-}  // namespace querydevice

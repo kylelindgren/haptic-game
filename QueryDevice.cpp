@@ -18,27 +18,9 @@ Description:
   This example demonstrates how to retrieve information from the haptic device.
 
 *******************************************************************************/
-#ifdef  _WIN64
-#pragma warning (disable:4996)
-#endif
-
-#if defined(WIN32)
-# include <windows.h>
-# include <conio.h>
-#else
-# include "conio.h"
-# include <string.h>
-#endif
-
-#include <stdio.h>
-#include <assert.h>
-
-#include <HD/hd.h>
-
-#include <HDU/hduVector.h>
-#include <HDU/hduError.h>
 #include "QueryDevice.h"
 
+namespace querydevice {
 
 static DeviceData gServoDeviceData;
 
@@ -86,20 +68,6 @@ HDCallbackCode HDCALLBACK copyDeviceDataCallback(void *pUserData)
     return HD_CALLBACK_DONE;
 }
 
-
-/*******************************************************************************
- Prints out a help string about using this example.
-*******************************************************************************/
-void printHelp(void)
-{
-    static const char help[] = {"\
-Press and release the stylus button to print out the current device location.\n\
-Press and hold the stylus button to exit the application\n"};
-
-    //fprintf(stdout, "%s\n", help);
-}
-
-
 /*******************************************************************************
  This routine allows the device to provide information about the current 
  location of the stylus, and contains a mechanism for terminating the 
@@ -122,8 +90,6 @@ void mainLoop(void)
         &currentData, HD_MIN_SCHEDULER_PRIORITY);
 
     memcpy(&prevData, &currentData, sizeof(DeviceData));    
-
-    printHelp();
 
     /* Run the main loop until the gimbal button is held. */
     //while (1)
@@ -183,49 +149,4 @@ void mainLoop(void)
     //}
 }
 
-/*******************************************************************************
- Main function.
- Sets up the device, runs main application loop, cleans up when finished.
-*******************************************************************************/
-//int main(int argc, char* argv[])
-//{
-//    HDSchedulerHandle hUpdateHandle = 0;
-//    HDErrorInfo error;
-//
-//    /* Initialize the device, must be done before attempting to call any hd 
-//       functions. */
-//    HHD hHD = hdInitDevice(HD_DEFAULT_DEVICE);
-//    if (HD_DEVICE_ERROR(error = hdGetError()))
-//    {
-//        hduPrintError(stderr, &error, "Failed to initialize the device");
-//        fprintf(stderr, "\nPress any key to quit.\n");
-//        getch();
-//        return -1;           
-//    }
-//
-//    /* Schedule the main scheduler callback that updates the device state. */
-//    hUpdateHandle = hdScheduleAsynchronous(
-//        updateDeviceCallback, 0, HD_MAX_SCHEDULER_PRIORITY);
-//
-//    /* Start the servo loop scheduler. */
-//    hdStartScheduler();
-//    if (HD_DEVICE_ERROR(error = hdGetError()))
-//    {
-//        hduPrintError(stderr, &error, "Failed to start the scheduler");
-//        fprintf(stderr, "\nPress any key to quit.\n");
-//        getch();
-//        return -1;           
-//    }
-//    
-//    /* Run the application loop. */
-//    mainLoop();
-//
-//    /* For cleanup, unschedule callbacks and stop the servo loop. */
-//    hdStopScheduler();
-//    hdUnschedule(hUpdateHandle);
-//    hdDisableDevice(hHD);
-//
-//    return 0;
-//}
-
-/******************************************************************************/
+}  // namespace querydevice
