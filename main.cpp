@@ -1,7 +1,17 @@
+// Needed for Phantom Omni
 #include "FrictionlessPlane.h"
 #include "QueryDevice.h"
 
+// Needed for Windows 32 API for sounds
+#include <windows.h>
+#include <iostream>
+#include <mmsystem.h>
+#include "stdafx.h"
 
+// Define sound files (wav only)
+#define SCARY_SOUND (".\\audio\\background_scary.wav")
+#define DOOR_SOUND (".\\..\\door_open_close.wav")
+#define FOOTSTEPS_SOUND (".\\..\\footsteps.wav")
 
 /*******************************************************************************
  * main function
@@ -49,6 +59,12 @@ int main(int argc, char* argv[])
     printf("Push hard against the plane to popthrough to the other side.\n");
     printf("Press the stylus button to output current position.\n");
     printf("Press any key to quit.\n\n");
+
+	// Sample sound code
+	// To make sound work, add an include for "winmm.lib" in the linker include section for the project file
+	/*
+	PlaySoundA((LPCSTR) FOOTSTEPS_SOUND, NULL, SND_FILENAME);
+	*/
 
     while (!_kbhit())
     {       
