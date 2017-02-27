@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <iostream>
 #include <mmsystem.h>
-#include "stdafx.h"
+//#include "stdafx.h"
 
 // Define sound files (wav only)
 #define SCARY_SOUND (".\\audio\\background_scary.wav")
@@ -62,9 +62,9 @@ int main(int argc, char* argv[])
 
 	// Sample sound code
 	// To make sound work, add an include for "winmm.lib" in the linker include section for the project file
-	/*
+	///*
 	PlaySoundA((LPCSTR) FOOTSTEPS_SOUND, NULL, SND_FILENAME);
-	*/
+	//*/
 
     while (!_kbhit())
     {       
