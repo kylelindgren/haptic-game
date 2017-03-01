@@ -35,6 +35,8 @@ Description:
 # include "conio.h"
 #endif
 
+#include "UserData.h"
+
 #include <HD/hd.h>
 #include <HDU/hduVector.h>
 #include <HDU/hduError.h>

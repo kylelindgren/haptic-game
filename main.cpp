@@ -1,6 +1,7 @@
 // Needed for Phantom Omni
 #include "FrictionlessPlane.h"
 #include "QueryDevice.h"
+//#include "UserData.h"
 
 // Needed for Windows 32 API for sounds
 #include <windows.h>
@@ -13,6 +14,7 @@
 #define DOOR_SOUND (".\\..\\door_open_close.wav")
 #define FOOTSTEPS_SOUND (".\\..\\footsteps.wav")
 
+
 /*******************************************************************************
  * main function
    Initializes the device, creates a callback to handles plane forces, 
@@ -20,6 +22,8 @@
  ******************************************************************************/
 int main(int argc, char* argv[])
 {
+	User* player0 = new User;
+	void* data = static_cast<void*>(player0);
     HDErrorInfo error;
 
     // Initialize the default haptic device.
@@ -52,7 +56,7 @@ int main(int argc, char* argv[])
     // Schedule the frictionless plane callback, which will then run at 
     // servoloop rates and command forces if the user penetrates the plane.
     HDCallbackCode hPlaneCallback = hdScheduleAsynchronous(
-        frictionlessplane::FrictionlessPlaneCallback, 0, HD_DEFAULT_SCHEDULER_PRIORITY);
+        frictionlessplane::FrictionlessPlaneCallback, data, HD_DEFAULT_SCHEDULER_PRIORITY);
 
     printf("Room example.\n");
     printf("Move the device around to feel the walls.\n");
