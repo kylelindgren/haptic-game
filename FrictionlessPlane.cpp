@@ -64,7 +64,7 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 	switch (player->room) {
 	case A:
 		// door center front of the room with the height starting at room height min
-		if (position[0] <= door_width/2 && position[0] >= -door_width/2 &&
+		if (fabs(position[0]) <= door_width/2 &&
 			position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 			position[2] >= room_length_max) {
 				player->room = B;
@@ -72,32 +72,32 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 				// TODO: implement room change sequence
 		} else if (position[0] >= room_width_max &&
 			position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
-			position[2] <= door_width/2 && position[2] >= -door_width/2) {
+			fabs(position[2]) <= door_width/2) {
 				player->room = D;
 				std::cout << "Entering room: " << player->room << std::endl;
 		}
 		break;
 	case B:
-		if (position[0] <= door_width/2 && position[0] >= -door_width/2 &&
+		if (fabs(position[0]) <= door_width/2 &&
 			position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 			position[2] <= room_length_min) {
 				player->room = A;
 				std::cout << "Entering room: " << player->room << std::endl;
 		} else if (position[0] >= room_width_max &&
 			position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
-			position[2] <= door_width/2 && position[2] >= -door_width/2) {
+			fabs(position[2]) <= door_width/2) {
 				player->room = C;
 				std::cout << "Entering room: " << player->room << std::endl;
 		}
 		break;
 	case C:
-		if (!player->hasKey() &&
-			position[0] <= (room_width_max - 20) && position[0] >= (room_width_max - 15) &&
+		if (!player->has_key &&
+			position[0] >= (room_width_max - 30) && position[0] <= (room_width_max - (30 - key_size)) &&
 			position[1] <= (room_height_min + key_size) &&
-			position[2] <= -key_size/2 && position[2] >= key_size/2) {
+			fabs(position[2]) <= key_size/2) {
 				std::cout << "Grabbed Key" << std::endl;
 				player->has_key = true;
-		} else if (position[0] <= door_width/2 && position[0] >= -door_width/2 &&
+		} else if (fabs(position[0]) <= door_width/2 &&
 			position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 			position[2] <= room_length_min) {
 				player->room = D;
@@ -110,22 +110,25 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 		}
 		break;
 	case D:
-		if (position[0] <= door_width/2 && position[0] >= -door_width/2 &&
+		if (fabs(position[0]) <= door_width/2 &&
 			position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 			position[2] >= room_length_max) {
 				player->room = C;
 				std::cout << "Entering room: " << player->room << std::endl;
 		} else if (position[0] >= room_width_max &&
 			position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
-			position[2] <= door_width/2 && position[2] >= -door_width/2 &&
-			player->hasKey()) {
+			fabs(position[2]) <= door_width/2 &&
+			player->has_key) {
 				std::cout << "Freedom!" << std::endl;
-		} else if (position[0] <= room_width_max &&
+				player->has_key = false;
+		} else if (position[0] <= room_width_min &&
 			position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
-			position[2] <= door_width/2 && position[2] >= -door_width/2) {
+			fabs(position[2]) <= door_width/2) {
 				player->room = A;
 				std::cout << "Entering room: " << player->room << std::endl;
 		}
+		break;
+	default:
 		break;
 	}
 

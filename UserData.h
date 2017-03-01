@@ -1,6 +1,4 @@
-//#include "FrictionlessPlane.h"
-
-
+// store user data
 
 enum location {
 	A,
@@ -22,9 +20,6 @@ public:
 
 	enum location getRoom() {
 		return room;
-	}
-	bool hasKey() {
-		return has_key;
 	}
 	double getHealth() {
 		return health;
