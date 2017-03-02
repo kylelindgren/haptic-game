@@ -11,10 +11,12 @@ class User {
 public:
 	enum location room;
 	bool has_key;
+	bool room_transition;
 	double health;
 	User () {
 		room = location::A;
 		has_key = false;
+		room_transition = false;
 		health = 100.0;
 	}
 
