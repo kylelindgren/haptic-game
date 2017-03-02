@@ -11,7 +11,7 @@
 
 // Define sound files (wav only)
 #define SCARY_SOUND (".\\audio\\background_scary.wav")
-#define DOOR_SOUND (".\\..\\door_open_close.wav")
+#define DOOR_SOUND (".\\..\\door_edited.wav")
 #define FOOTSTEPS_SOUND (".\\..\\footsteps.wav")
 
 
@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 	// Sample sound code
 	// To make sound work, add an include for "winmm.lib" in the linker include section for the project file
 	///*
-	PlaySound(TEXT("door_edited.wav"), NULL, SND_FILENAME);
+	PlaySoundA((LPCSTR) DOOR_SOUND, NULL, SND_ASYNC);
 	//*/
 
     while (!_kbhit())

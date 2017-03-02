@@ -26,6 +26,11 @@ Description:
 #include <mmsystem.h>
 #include "FrictionlessPlane.h"
 
+// Should probably include the audio in an audio.h file
+// Define sound files (wav only)
+#define SCARY_SOUND (".\\audio\\background_scary.wav")
+#define DOOR_SOUND (".\\..\\door_edited.wav")
+#define FOOTSTEPS_SOUND (".\\..\\footsteps.wav")
 
 namespace frictionlessplane {
 
@@ -82,6 +87,7 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 					player->room = B;
 					std::cout << "Entering room: " << player->room << std::endl;
 					//PlaySound(TEXT("door_edited.wav"), NULL, SND_FILENAME);
+					// PlaySoundA((LPCSTR) DOOR_SOUND, NULL, SND_ASYNC);
 					// TODO: implement room change sequence by applying Hook's Law. 
 					// When a room is changed, a force will be applied that pushes the player to (0,0,0).
 					// new_position = old_position - k*old_position. 
@@ -96,6 +102,7 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 					player->room = D;
 					std::cout << "Entering room: " << player->room << std::endl;
 					//PlaySound(TEXT("door_edited.wav"), NULL, SND_FILENAME);
+					// PlaySoundA((LPCSTR) DOOR_SOUND, NULL, SND_ASYNC);
 
 			}
 			break;
