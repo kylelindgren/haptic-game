@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 	// Sample sound code
 	// To make sound work, add an include for "winmm.lib" in the linker include section for the project file
 	///*
-	PlaySoundA((LPCSTR) FOOTSTEPS_SOUND, NULL, SND_FILENAME);
+	PlaySound(TEXT("door_edited.wav"), NULL, SND_FILENAME);
 	//*/
 
     while (!_kbhit())

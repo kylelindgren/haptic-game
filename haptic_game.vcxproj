@@ -512,6 +512,7 @@ copy "$(IntDir)\$(TargetFileName)" "$(SolutionDir)\..\..\bin\$(PlatformName)\HD<
     <ClInclude Include="UserData.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="audio\foosteps.wav" />
     <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

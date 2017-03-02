@@ -21,8 +21,11 @@ Description:
   and allow the user to interact with it from the opposite side.
 
 *******************************************************************************/
-
+#include <windows.h>
+#include <iostream>
+#include <mmsystem.h>
 #include "FrictionlessPlane.h"
+
 
 namespace frictionlessplane {
 
@@ -38,11 +41,12 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 				room_width_min = -75, room_width_max = 75,
 				room_height_min = -30, room_height_max = 30;
 	static double door_width = 25, door_height = 45;
-	static double key_size = 5;
+	static double key_size = 15;
 
     // Stiffnes, i.e. k value, of the plane.  Higher stiffness results
     // in a harder surface.
     const double planeStiffness = .25;
+	hduVector3Dd f = hduVector3Dd(0, 0, 0);
 
     // Amount of force the user needs to apply in order to pop through
     // the plane.
@@ -67,14 +71,24 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 		if (fabs(position[0]) <= door_width/2 &&
 			position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 			position[2] >= room_length_max) {
+				
 				player->room = B;
 				std::cout << "Entering room: " << player->room << std::endl;
-				// TODO: implement room change sequence
+				//PlaySound(TEXT("door_edited.wav"), NULL, SND_FILENAME);
+				// TODO: implement room change sequence by applying Hook's Law. 
+				// When a room is changed, a force will be applied that pushes the player to (0,0,0).
+				// new_position = old_position - k*old_position. 
+				//k less than 1.
+				//while(position[0] != 0 && position[1] != 0 && position[2] != 0){
+			    //f+= - 0.25*position;}
+			
 		} else if (position[0] >= room_width_max &&
 			position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 			fabs(position[2]) <= door_width/2) {
 				player->room = D;
 				std::cout << "Entering room: " << player->room << std::endl;
+				//PlaySound(TEXT("door_edited.wav"), NULL, SND_FILENAME);
+
 		}
 		break;
 	case B:
@@ -83,11 +97,13 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 			position[2] <= room_length_min) {
 				player->room = A;
 				std::cout << "Entering room: " << player->room << std::endl;
+
 		} else if (position[0] >= room_width_max &&
 			position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 			fabs(position[2]) <= door_width/2) {
 				player->room = C;
 				std::cout << "Entering room: " << player->room << std::endl;
+				
 		}
 		break;
 	case C:
@@ -138,7 +154,7 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
     // is negative, or vice versa.
 	double penetrationDistance = 0;
     double k = planeStiffness;
-	hduVector3Dd f = hduVector3Dd(0, 0, 0);
+	
 
 	// update x force
 	if (position[0] <= room_width_min || position[0] >= room_width_max) {
@@ -148,8 +164,8 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 
 		// Hooke's law explicitly:
         hduVector3Dd x = penetrationDistance*forceDirection;
-        f = k*x;
-
+        f += k*x;
+		
         // If the user applies sufficient force, pop through the plane
         // by reversing its direction.  Otherwise, apply the repel
         // force.
@@ -168,7 +184,7 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 		// Hooke's law explicitly:
         hduVector3Dd x = penetrationDistance*forceDirection;
         f += k*x;
-
+		
         // If the user applies sufficient force, pop through the plane
         // by reversing its direction.  Otherwise, apply the repel
         // force.
@@ -187,7 +203,7 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 		// Hooke's law explicitly:
         hduVector3Dd x = penetrationDistance*forceDirection;
         f += k*x;
-
+		
         // If the user applies sufficient force, pop through the plane
         // by reversing its direction.  Otherwise, apply the repel
         // force.
