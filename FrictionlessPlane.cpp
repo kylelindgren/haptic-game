@@ -44,7 +44,7 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 	static double key_size = 15;
 
 	//time variables
-	static double opening_door_duration = 2;
+	static double opening_door_duration = 1.5;
 	static time_t timer_now, timer_start;
 	timer_now = time(NULL);
 	// std::cout << difftime(timer_start, timer_start) << std::endl;
@@ -110,12 +110,8 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 						std::cout << "Entering room: " << player->room << std::endl;
 						PlaySound(TEXT("door_edited.wav"), NULL, SND_ASYNC);
 					}
-<<<<<<< HEAD
 			} else {  // no longer at a door, stop vibration
 				player->opening_door = false;
-=======
-
->>>>>>> 984671ff9bb70d78c5cffc65c83d5b2baea1a3c7
 			}
 			break;
 		case B:
@@ -145,12 +141,8 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 						player->room = C;
 						std::cout << "Entering room: " << player->room << std::endl;
 					}
-				
-<<<<<<< HEAD
 			} else {
 				player->opening_door = false;
-=======
->>>>>>> 984671ff9bb70d78c5cffc65c83d5b2baea1a3c7
 			}
 			break;
 		case C:
@@ -184,11 +176,8 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 						player->room = B;
 						std::cout << "Entering room: " << player->room << std::endl;
 					}
-<<<<<<< HEAD
 			} else {
 				player->opening_door = false;
-=======
->>>>>>> 984671ff9bb70d78c5cffc65c83d5b2baea1a3c7
 			}
 			break;
 		case D:
@@ -222,11 +211,8 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 						player->room = A;
 						std::cout << "Entering room: " << player->room << std::endl;
 					}
-<<<<<<< HEAD
 			} else {
 				player->opening_door = false;
-=======
->>>>>>> 984671ff9bb70d78c5cffc65c83d5b2baea1a3c7
 			}
 			break;
 		default:

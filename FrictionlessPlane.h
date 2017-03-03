@@ -28,6 +28,7 @@ Description:
 #include <cstdio>
 #include <cassert>
 #include <iostream>
+#include <time.h>
 
 #if defined(WIN32)
 # include <conio.h>
@@ -35,7 +36,10 @@ Description:
 # include "conio.h"
 #endif
 
+#ifndef USERDATA_H
+#define USERDATA_H
 #include "UserData.h"
+#endif
 
 #include <HD/hd.h>
 #include <HDU/hduVector.h>
