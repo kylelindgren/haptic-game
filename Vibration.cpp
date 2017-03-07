@@ -129,24 +129,47 @@ HDCallbackCode HDCALLBACK VibrationCallback(void *data)
 {
 	User* player = static_cast<User*>(data);
 
-    static const hduVector3Dd direction = hduVector3Dd( 0, 1, 0 );
+    static const hduVector3Dd direction_lr  = hduVector3Dd( 1, 0, 0 );
+    static const hduVector3Dd direction_fb  = hduVector3Dd( 0, 0, 1 );
+	static const hduVector3Dd direction_pet = hduVector3Dd( 0, 1, 0 );
     HDErrorInfo error;
     hduVector3Dd force;
     hduVector3Dd force_zero = hduVector3Dd(0, 0, 0);
     HDdouble instRate;
     static HDdouble timer = 0;
+    static HDint    freq_pet = 25;  // wikipedia says this about average	
+    static HDdouble amp_pet  = 0.75;
+	static HDdouble nominalMaxContinuousForce = player->max_force;
 
 	hdGetDoublev(HD_CURRENT_FORCE, force);
-	if (player->opening_door) {
-		/* Use the reciprocal of the instantaneous rate as a timer. */
-		hdGetDoublev(HD_INSTANTANEOUS_UPDATE_RATE, &instRate);
-		timer += 1.0 / instRate;
 
-		/* Apply a sinusoidal force in the direction of motion. */
-		hduVecScale(force, direction, gVibrationAmplitude * sin(timer * gVibrationFreq));
-    
-		hdSetDoublev(HD_CURRENT_FORCE, force);
-	} 
+	/* Use the reciprocal of the instantaneous rate as a timer. */
+	hdGetDoublev(HD_INSTANTANEOUS_UPDATE_RATE, &instRate);
+	timer += 1.0 / instRate;
+	
+	/* Apply a sinusoidal force in the direction of motion. */
+	if (player->opening_lr_door) {
+		hduVecScale(force, direction_lr, gVibrationAmplitude * sin(timer * gVibrationFreq));
+	} else if (player->opening_fb_door) {
+		hduVecScale(force, direction_fb, gVibrationAmplitude * sin(timer * gVibrationFreq));
+	} else if (player->petting_cat) {
+		hduVecScale(force, direction_pet, amp_pet * sin(timer * freq_pet));
+	}
+	
+	// Find the max continuous force that the device is capable of
+	// hdGetDoublev(HD_NOMINAL_MAX_CONTINUOUS_FORCE, &nominalMaxContinuousForce);
+	for (int i = 0; i < 3; i++) {
+		if (force[i] > nominalMaxContinuousForce) {
+			//std::cout << force << std::endl;
+			force[i] = nominalMaxContinuousForce;
+		} else if (force[i] < -nominalMaxContinuousForce) {
+			//std::cout << force << std::endl;
+			force[i] = -nominalMaxContinuousForce;
+		}
+	}
+
+	hdSetDoublev(HD_CURRENT_FORCE, force);
+
 
 		/* Check if an error occurred while attempting to render the force. */
 	if (HD_DEVICE_ERROR(error = hdGetError()))

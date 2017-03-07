@@ -26,6 +26,7 @@ Description:
 
 #include <stdio.h>
 #include <assert.h>
+#include <iostream>
 
 #if defined(WIN32)
 # include <windows.h>
@@ -47,7 +48,7 @@ typedef int BOOL;
 
 namespace vibration {
 
-static HDint gVibrationFreq = 100; /* Hz */
+static HDint gVibrationFreq = 50; /* Hz */
 static HDdouble gVibrationAmplitude = 0.50; /* N */
 
 static HDSchedulerHandle gCallbackHandle;

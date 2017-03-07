@@ -38,21 +38,22 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 	User* player = static_cast<User*>(data);
 
 	static double room_length_min = -50, room_length_max = 50,
-				room_width_min = -75, room_width_max = 75,
-				room_height_min = -30, room_height_max = 30;
+				  room_width_min  = -75, room_width_max  = 75,
+				  room_height_min = -30, room_height_max = 30;
 	static double door_width = 25, door_height = 45;
-	static double key_size = 15;
+	static double key_size = 15, cat_size = 20;
+	static double pos_max;
+	static HDdouble nominalMaxContinuousForce = player->max_force;
 
 	//time variables
-	static double opening_door_duration = 1.5;
+	static double opening_door_duration = 1.0;
 	static time_t timer_now, timer_start;
 	timer_now = time(NULL);
-	// std::cout << difftime(timer_start, timer_start) << std::endl;
 
     // Stiffnes, i.e. k value, of the plane.  Higher stiffness results
     // in a harder surface.
     const double planeStiffness = 0.75;
-	const double room_guidance = 0.5;
+	const double room_guidance = 1;
 	hduVector3Dd f = hduVector3Dd(0, 0, 0);
 
 	hdGetDoublev(HD_CURRENT_FORCE, f);
@@ -67,17 +68,24 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
     // -1 means the plane is facing -Y.
     static int directionFlag = 1;
 
-    //hdBeginFrame(hdGetCurrentDevice());
-
     // Get the position of the device.
     hduVector3Dd position;
     hdGetDoublev(HD_CURRENT_POSITION, position);
 
 	if (player->room_transition) {
-		if (position[0] != 0 && position[1] != 0 && position[2] != 0)
-					f -= room_guidance*position;
-		else
+		if (position[0] != 0 && position[1] != 0 && position[2] != 0) {
+			// normalize force
+			pos_max = 0;
+			for (int i = 0; i < 2; i++) {
+				if (fabs(position[i]) > pos_max)
+					pos_max = fabs(position[i]);
+			}
+			f -= room_guidance*position;// / pos_max;
+		} else {
 			player->room_transition = false;
+			// todo: play door closing sound
+		}
+
 	} else {
 		// check if entering a door
 		switch (player->room) {
@@ -86,11 +94,11 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 			if (fabs(position[0]) <= door_width/2 &&
 				position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 				position[2] >= room_length_max) {
-					if (!player->opening_door) {
-						player->opening_door = true;
+					if (!player->opening_fb_door) {
+						player->opening_fb_door = true;
 						timer_start = time(NULL);
 					} else if (difftime(timer_now, timer_start) > opening_door_duration) {
-						player->opening_door = false;
+						player->opening_fb_door = false;
 						player->room_transition = true;
 						player->room = B;
 						std::cout << "Entering room: " << player->room << std::endl;
@@ -100,49 +108,59 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 			} else if (position[0] >= room_width_max &&
 				position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 				fabs(position[2]) <= door_width/2) {
-					if (!player->opening_door) {
-						player->opening_door = true;
+					if (!player->opening_lr_door) {
+						player->opening_lr_door = true;
 						timer_start = time(NULL);
 					} else if (difftime(timer_now, timer_start) > opening_door_duration) {
-						player->opening_door = false;
+						player->opening_lr_door = false;
 						player->room_transition = true;
 						player->room = D;
 						std::cout << "Entering room: " << player->room << std::endl;
 						PlaySound(TEXT("door_edited.wav"), NULL, SND_ASYNC);
 					}
-			} else {  // no longer at a door, stop vibration
-				player->opening_door = false;
+			} else {  // no longer at a door or cat, stop vibration
+				player->opening_lr_door = false;
+				player->opening_fb_door = false;
+				player->petting_cat = false;
 			}
 			break;
 		case B:
-			// std::cout << difftime(timer_now, timer_start) << std::endl;
 			if (fabs(position[0]) <= door_width/2 &&
 				position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 				position[2] <= room_length_min) {
-					if (!player->opening_door) {
-						player->opening_door = true;
+					if (!player->opening_fb_door) {
+						player->opening_fb_door = true;
 						timer_start = time(NULL);
 					} else if (difftime(timer_now, timer_start) > opening_door_duration) {
-						player->opening_door = false;
+						player->opening_fb_door = false;
 						player->room_transition = true;
 						player->room = A;
 						std::cout << "Entering room: " << player->room << std::endl;
+						PlaySound(TEXT("door_edited.wav"), NULL, SND_ASYNC);
 					}
 
 			} else if (position[0] >= room_width_max &&
 				position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 				fabs(position[2]) <= door_width/2) {
-					if (!player->opening_door) {
-						player->opening_door = true;
+					if (!player->opening_lr_door) {
+						player->opening_lr_door = true;
 						timer_start = time(NULL);
 					} else if (difftime(timer_now, timer_start) > opening_door_duration) {
-						player->opening_door = false;
+						player->opening_lr_door = false;
 						player->room_transition = true;
 						player->room = C;
 						std::cout << "Entering room: " << player->room << std::endl;
+						PlaySound(TEXT("door_edited.wav"), NULL, SND_ASYNC);
 					}
+			} else if (position[0] >= (room_width_max - cat_size) &&  // petting cat
+					   position[1] <= 100 &&
+					   position[2] >= (room_length_max - cat_size)) {
+					player->petting_cat = true;
+					// todo: play cat purr sound
 			} else {
-				player->opening_door = false;
+				player->opening_lr_door = false;
+				player->opening_fb_door = false;
+				player->petting_cat = false;
 			}
 			break;
 		case C:
@@ -152,46 +170,52 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 				fabs(position[2]) <= key_size/2) {
 					std::cout << "Grabbed Key" << std::endl;
 					player->has_key = true;
+					// todo: play key sound
 			} else if (fabs(position[0]) <= door_width/2 &&
 				position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 				position[2] <= room_length_min) {
-					if (!player->opening_door) {
-						player->opening_door = true;
+					if (!player->opening_fb_door) {
+						player->opening_fb_door = true;
 						timer_start = time(NULL);
 					} else if (difftime(timer_now, timer_start) > opening_door_duration) {
-						player->opening_door = false;
+						player->opening_fb_door = false;
 						player->room_transition = true;
 						player->room = D;
 						std::cout << "Entering room: " << player->room << std::endl;
+						PlaySound(TEXT("door_edited.wav"), NULL, SND_ASYNC);
 					}
 			} else if (position[0] <= room_width_min &&
 				position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 				position[2] <= door_width/2 && position[2] >= -door_width/2) {
-					if (!player->opening_door) {
-						player->opening_door = true;
+					if (!player->opening_lr_door) {
+						player->opening_lr_door = true;
 						timer_start = time(NULL);
 					} else if (difftime(timer_now, timer_start) > opening_door_duration) {
-						player->opening_door = false;
+						player->opening_lr_door = false;
 						player->room_transition = true;
 						player->room = B;
 						std::cout << "Entering room: " << player->room << std::endl;
+						PlaySound(TEXT("door_edited.wav"), NULL, SND_ASYNC);
 					}
 			} else {
-				player->opening_door = false;
+				player->opening_lr_door = false;
+				player->opening_fb_door = false;
+				player->petting_cat = false;
 			}
 			break;
 		case D:
 			if (fabs(position[0]) <= door_width/2 &&
 				position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 				position[2] >= room_length_max) {
-					if (!player->opening_door) {
-						player->opening_door = true;
+					if (!player->opening_fb_door) {
+						player->opening_fb_door = true;
 						timer_start = time(NULL);
 					} else if (difftime(timer_now, timer_start) > opening_door_duration) {
-						player->opening_door = false;
+						player->opening_fb_door = false;
 						player->room_transition = true;
 						player->room = C;
 						std::cout << "Entering room: " << player->room << std::endl;
+						PlaySound(TEXT("door_edited.wav"), NULL, SND_ASYNC);
 					}
 			} else if (position[0] >= room_width_max &&
 				position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
@@ -199,20 +223,26 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
 				player->has_key) {
 					std::cout << "Freedom!" << std::endl;
 					player->has_key = false;
+					player->free = true;
+					PlaySound(TEXT("door_edited.wav"), NULL, SND_ASYNC);
+					// todo: add end of game signal
 			} else if (position[0] <= room_width_min &&
 				position[1] <= (door_height/2 - (room_height_max - door_height/2)) &&
 				fabs(position[2]) <= door_width/2) {
-					if (!player->opening_door) {
-						player->opening_door = true;
+					if (!player->opening_lr_door) {
+						player->opening_lr_door = true;
 						timer_start = time(NULL);
 					} else if (difftime(timer_now, timer_start) > opening_door_duration) {
-						player->opening_door = false;
+						player->opening_lr_door = false;
 						player->room_transition = true;
 						player->room = A;
 						std::cout << "Entering room: " << player->room << std::endl;
+						PlaySound(TEXT("door_edited.wav"), NULL, SND_ASYNC);
 					}
 			} else {
-				player->opening_door = false;
+				player->opening_lr_door = false;
+				player->opening_fb_door = false;
+				player->petting_cat = false;
 			}
 			break;
 		default:
@@ -286,6 +316,19 @@ HDCallbackCode HDCALLBACK FrictionlessPlaneCallback(void *data)
         }
 	}
 		
+	//// Find the max continuous force that the device is capable of
+	//// hdGetDoublev(HD_NOMINAL_MAX_CONTINUOUS_FORCE, &nominalMaxContinuousForce);
+	for (int i = 0; i < 3; i++) {
+		if (f[i] > nominalMaxContinuousForce) {
+			//std::cout << f << std::endl;
+			f[i] = nominalMaxContinuousForce;
+		} else if (f[i] < -nominalMaxContinuousForce) {
+			//std::cout << f << std::endl;
+			f[i] = -nominalMaxContinuousForce;
+		}
+	}
+	
+	// std::cout << f << std::endl;
     hdSetDoublev(HD_CURRENT_FORCE, f);
 
     hdEndFrame(hdGetCurrentDevice());
