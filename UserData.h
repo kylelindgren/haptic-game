@@ -21,6 +21,7 @@ public:
 	double health;
 	bool petting_cat;
 	bool free;
+	bool trying_locked_door;
 	HDdouble max_force;
 	User () {
 		room = location::A;
@@ -32,6 +33,7 @@ public:
 		petting_cat = false;
 		free = false;
 		max_force = 100;
+		trying_locked_door = false;
 	}
 
 	enum location getRoom() {
